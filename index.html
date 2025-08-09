@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skillup AI</title>
+  <link rel="icon" type="image/jpeg" href="favicon.jpg" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+    /* Fullscreen Preloader Styles */
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #ff7e5f, #feb47b);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      user-select: none;
+    }
+
+    @keyframes gradientBG {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    /* Loader Container & Animation */
+    .loader-container {
+      border-radius: 50%;
+      height: 96px;
+      width: 96px;
+      animation: rotate_3922 1.2s linear infinite;
+      background-color: #9b59b6;
+      background-image: linear-gradient(#9b59b6, #84cdfa, #5ad1cd);
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .loader-container span {
+      position: absolute;
+      border-radius: 50%;
+      height: 100%;
+      width: 100%;
+      background-color: #9b59b6;
+      background-image: linear-gradient(#9b59b6, #84cdfa, #5ad1cd);
+    }
+
+    .loader-container span:nth-of-type(1) {
+      filter: blur(5px);
+    }
+
+    .loader-container span:nth-of-type(2) {
+      filter: blur(10px);
+    }
+
+    .loader-container span:nth-of-type(3) {
+      filter: blur(25px);
+    }
+
+    .loader-container span:nth-of-type(4) {
+      filter: blur(50px);
+    }
+
+    .loader-container::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      background-color: #fff;
+      border: solid 5px #ffffff;
+      border-radius: 50%;
+    }
+
+    @keyframes rotate_3922 {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Main content (hidden initially) */
+    #main-content {
+      display: none;
+      height: 100vh;
+      background: linear-gradient(-45deg, #6a11cb, #2575fc, #ff7e5f, #feb47b);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    /* Mic Button */
+    #start-btn {
+      background: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 90px;
+      height: 90px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: box-shadow 0.3s ease;
+      position: relative;
+      outline: none;
+      z-index: 10;
+    }
+    #start-btn:active {
+      box-shadow: 0 2px 7px rgba(0,0,0,0.5);
+      transform: scale(0.95);
+    }
+    #start-btn.listening {
+      animation: pulse 1.5s infinite;
+      box-shadow: 0 0 25px 8px rgba(255, 255, 255, 0.7);
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 15px 4px rgba(255, 255, 255, 0.6);
+      }
+      50% {
+        box-shadow: 0 0 30px 10px rgba(255, 255, 255, 1);
+      }
+      100% {
+        box-shadow: 0 0 15px 4px rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    /* Mic Icon (SVG) */
+    svg {
+      width: 40px;
+      height: 40px;
+      fill: #6a11cb;
+      transition: fill 0.3s ease;
+    }
+    #start-btn.listening svg {
+      fill: #fff;
+    }
+
+    /* Transcript Area */
+    #transcript {
+      margin-top: 40px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 25px 30px;
+      border-radius: 15px;
+      width: 90vw;
+      max-width: 600px;
+      min-height: 140px;
+      font-size: 1.6rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      color: #fff;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      user-select: text;
+      white-space: pre-wrap;
+    }
+    #transcript.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Footer text */
+    footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      user-select: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2rem;
+      }
+      #transcript {
+        font-size: 1.2rem;
+      }
+      #start-btn {
+        width: 75px;
+        height: 75px;
+      }
+      svg {
+        width: 30px;
+        height: 30px;
+      }
+    }
+
+    /* Stylish Button (from Uiverse) */
+#toggle-questions {
+  padding: 15px 25px;
+  border: unset;
+  border-radius: 15px;
+  color: #212121;
+  z-index: 1000;
+  background: #e8e8e8;
+  position: relative;
+  font-weight: 1000;
+  font-size: 17px;
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+  overflow: hidden;
+}
+
+#toggle-questions::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 15px;
+  background-color: #212121;
+  z-index: -1;
+  box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+  transition: all 250ms;
+}
+
+#toggle-questions:hover {
+  color: #e8e8e8;
+}
+
+#toggle-questions:hover::before {
+  width: 100%;
+}
+
+/* Question List Styles */
+#question-list {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.8);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.question-box {
+  background: #fff;
+  color: #333;
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+}
+
+.question-box h3 {
+  margin-top: 0;
+}
+
+.question-box ul {
+  list-style: none;
+  padding-left: 0;
+  line-height: 1.8;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  font-weight: bold;
+}
+
+  </style>
+</head>
+<body>
+
+
+  <!-- Preloader Screen -->
+  <div id="preloader">
+    <div class="loader-container">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div>Loading Skillup AI...</div>
+  </div>
+
+  <!-- Question List Toggle Button -->
+<button id="toggle-questions" style="position: absolute; top: 20px; right: 20px;">
+  View Questions
+</button>
+
+<!-- Hidden Scrollable Question List -->
+<div id="question-list" style="display: none;">
+  <div class="question-box">
+    <button id="close-questions" class="close-btn">X</button>
+    <h3>Ask me these questions 👇</h3>
+    <ul id="questions-ul"></ul>
+  </div>
+</div>
+
+  <!-- Main Content -->
+  <div id="main-content" role="main" aria-label="Voice recognition interface">
+    <h1>Skillup AI - Learn and Earn</h1>
+
+    <button id="start-btn" aria-label="Start voice recognition" title="Click to start listening">
+      <!-- Mic SVG Icon -->
+      <svg viewBox="0 0 24 24" >
+        <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/>
+        <path d="M19 11v1a7 7 0 0 1-14 0v-1"/>
+        <line x1="12" y1="19" x2="12" y2="23"/>
+        <line x1="8" y1="23" x2="16" y2="23"/>
+      </svg>
+    </button>
+
+    <div class="loader-container" id="loader" style="display:none;">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div id="transcript" aria-live="polite" aria-atomic="true">Your speech will appear here...</div>
+
+    <footer>© 2025 Skillup AI | Voice Powered by Web Speech API</footer>
+  </div>
+<script>
+  // Show preloader for 2 seconds, then show main content
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const preloader = document.getElementById('preloader');
+      const mainContent = document.getElementById('main-content');
+      preloader.style.display = 'none';
+      mainContent.style.display = 'flex';
+    }, 2000);
+  });
+
+  // Voice recognition code
+  const btn = document.getElementById('start-btn');
+  const transcriptDiv = document.getElementById('transcript');
+  const loader = document.getElementById('loader');
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const synth = window.speechSynthesis;
+
+  if (!SpeechRecognition) {
+    alert('Your browser does not support Speech Recognition API');
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.interimResults = true;
+  recognition.continuous = false;
+
+const answers = {
+  "hello": "Hello! How can I help you today?",
+  "what is your name": "My name is Skillup AI.",
+  "how are you": "I am doing great, thank you!",
+  "what can you do": "I can answer your questions using my voice.",
+  "i need a job": "You can apply for jobs online based on your skills.",
+  "thank you": "You're welcome!",
+  "bye": "Goodbye! Have a nice day.",
+  "who created you": "Moiz jis ne mujhe banaya, uss ko HTML, CSS aur JavaScript aati hai. Wo 9th class ka student hai.",
+  "how are you feeling": "I am perfectly fine, thank you!",
+
+  // 💼 Online Work Questions
+  "how to earn money online": "You can earn money online by freelancing, selling products, or offering services.",
+  "what is freelancing": "Freelancing is working independently for clients online, such as graphic design, writing, or programming.",
+  "which website is best for freelancing": "Fiverr, Upwork, Freelancer, and PeoplePerHour are popular freelancing platforms.",
+  "how to start freelancing": "Start by learning a skill, creating a profile on a freelancing website, and applying for projects.",
+  "what skills are in demand online": "Web development, graphic design, content writing, video editing, and digital marketing are in high demand.",
+  "can students earn online": "Yes, students can earn online by offering services, selling skills, or doing part-time remote jobs.",
+  "how to work from home": "You can work from home using your computer or phone by doing jobs like data entry, teaching, or freelancing.",
+  "how to apply for online jobs": "Search for jobs on trusted websites, sign up, and send your resume or portfolio to apply.",
+  "is online work safe": "Yes, online work is safe if you work on trusted platforms and avoid scams.",
+  "how to avoid scams": "Avoid offers that sound too good to be true. Always use verified platforms and never share personal info.",
+
+  // 🔥 Roman Urdu Q&A
+  "aapka kaun sa khana pasand ka hai": "Mujhe biryani aur pizza bohat pa sand hain!",
+  "aap kya kaam krte ho": "Main ek AI assistant hoon jo aap ki madad karta hoon.",
+  "aapki age kya ha": "Main ek digital AI hoon, meri age fix nahi hoti.",
+  "aapka favourite colour": "Mujhe neela aur kala rang pasand hai.",
+  "aapka favourite animal": "Mujhe sher aur billi pasand hain.",
+  "aap kis country se ho": "Main internet ka AI hoon, lekin mujhe Pakistan bohat pasand hai.",
+
+  // 🧠 Rozgar AI & Trivance Info
+  "aap kya ho": "Mai Skillup AI hoon. Mujhe Trivance Studio ke founder Moiz ne banaya hai. Trivance Studio ek creative agency hai jo websites aur logos banati hai, aur freelancing tools bhi launch karne wali hai.",
+  "What is trivance studio": "Trivance Studio is a digital agency that provides professional websites, logos, and soon will be launching online freelancing services and many more creative digital solutions."
+};
+
+
+
+
+
+
+
+  function findAnswer(text) {
+    text = text.toLowerCase().trim();
+    for (const question in answers) {
+      if (text.includes(question)) {
+        return answers[question];
+      }
+    }
+    return "Sorry, I don't know how to answer that.";
+  }
+
+  btn.addEventListener('click', () => {
+    if (btn.classList.contains('listening')) {
+      recognition.stop();
+      btn.classList.remove('listening');
+      loader.style.display = 'none';
+    } else {
+      recognition.start();
+      btn.classList.add('listening');
+      loader.style.display = 'block';
+      transcriptDiv.textContent = 'Listening... Speak now!';
+      transcriptDiv.classList.add('visible');
+    }
+  });
+
+  recognition.addEventListener('result', (e) => {
+    const transcript = Array.from(e.results)
+      .map(result => result[0].transcript)
+      .join('');
+    transcriptDiv.textContent = transcript;
+    transcriptDiv.classList.add('visible');
+  });
+
+  recognition.addEventListener('end', () => {
+    btn.classList.remove('listening');
+    loader.style.display = 'none';
+
+    const userText = transcriptDiv.textContent;
+
+    if (userText === 'Listening... Speak now!') {
+      transcriptDiv.textContent = 'Please say something or press the button again.';
+      return;
+    }
+
+    // Get reply
+    const reply = findAnswer(userText);
+
+    // Speak the reply
+    const utter = new SpeechSynthesisUtterance(reply);
+    utter.lang = 'en-US';
+    synth.speak(utter);
+  });
+
+
+  // Show/hide question list
+const toggleBtn = document.getElementById('toggle-questions');
+const questionList = document.getElementById('question-list');
+const closeBtn = document.getElementById('close-questions');
+const questionsUl = document.getElementById('questions-ul');
+
+// Fill the question list dynamically
+for (const question in answers) {
+  const li = document.createElement('li');
+  li.textContent = question;
+  questionsUl.appendChild(li);
+}
+
+toggleBtn.addEventListener('click', () => {
+  questionList.style.display = 'flex';
+});
+
+closeBtn.addEventListener('click', () => {
+  questionList.style.display = 'none';
+});
+
+</script>
+
+
+
+</body>
+</html>
